@@ -1,56 +1,34 @@
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+import { useNavigate } from "react-router";
 
 import moment from "moment";
 import validator from "validator";
 
-import { useDispatch } from "react-redux";
-
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
-import { StaticDateTimePicker } from "@mui/x-date-pickers";
+import { DateTimePicker } from "@mui/x-date-pickers";
+
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 export default function AppointmentForm({ handleSubmit }) {
 	// Set necessary variables
-	const dispatch = useDispatch();
+	const navigate = useNavigate();
 
-	const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-	const textRegex = /^[a-zA-Z0-9\s,.!?@()-]*$/;
 	const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
-	const dateRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
-	const timeRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/;
 
-	const [nameStyle, setNameStyle] = useState("");
-	const [emailStyle, setEmailStyle] = useState("");
-	const [phoneStyle, setPhoneStyle] = useState("");
-	const [dateStyle, setDateStyle] = useState("");
-	const [timeStyle, setTimeStyle] = useState("");
-	const [locationStyle, setLocationStyle] = useState("");
-	const [descriptionStyle, setDescriptionStyle] = useState("");
+	const [alert, setAlert] = useState(false);
+	const [danger, setDanger] = useState(false);
 
 	// Use state to store form data
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
 	const [date, setDate] = useState(moment().format("YYYY-MM-DD:HH:mm"));
-	// const [time, setTime] = useState(moment().format("HH:mm"));
 	const [location, setLocation] = useState("Black Magic Motors");
 	const [description, setDescription] = useState("");
-
-	// Add sanitization on input
-	const handleEmailInput = (value) => {
-		if (validator.isEmail(value)) {
-			console.log(value);
-		}
-		setEmail(value);
-	};
-
-	const handlePhoneInput = (value) => {
-		if (validator.matches(value, phoneRegex)) {
-			console.log(value);
-		}
-		setPhone(value);
-	};
 
 	// Handle Validation on input
 	const validateForm = () => {
@@ -90,21 +68,35 @@ export default function AppointmentForm({ handleSubmit }) {
 	};
 
 	// Handle form submission
-	const handleFormSubmit = () => {
+	const handleFormSubmit = (e) => {
+		e.preventDefault();
+
 		const appointment = {
 			location,
 			date,
 		};
 
-		if (name === validator.blacklist(name, "<>/")) {
-			appointment[name] = name;
+		if (validateForm()) {
+			appointment.name = name;
+			appointment.email = email;
+			appointment.phone = phone;
+			appointment.description = description;
+
+			setAlert(true);
+			setDanger(false);
+
+			handleSubmit(appointment);
+			navigate("/");
+		} else {
+			setAlert(true);
+			setDanger(true);
 		}
 	};
 
 	// Return the appointment form
 	return (
 		<LocalizationProvider dateAdapter={AdapterMoment}>
-			<form className="space-y-12 space-x-12">
+			<form className="space-y-12 space-x-12 m-12" onSubmit={handleFormSubmit}>
 				<div className="border-b border-gray-900/10 pb-12">
 					<h2 className="text-base font-semibold leading-7 text-gray-900">
 						Appointment Request Form
@@ -116,7 +108,7 @@ export default function AppointmentForm({ handleSubmit }) {
 
 					<div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 						{/* First Name and Last Name combined into one "name" field for simplicity */}
-						<div className="sm:col-span-2">
+						<div className="col-span-1 sm:col-span-2">
 							<label
 								htmlFor="name"
 								className="block text-sm font-medium leading-6 text-gray-900"
@@ -132,13 +124,13 @@ export default function AppointmentForm({ handleSubmit }) {
 									onInput={({ target }) =>
 										setName(validator.blacklist(target.value, "<>/"))
 									}
-									className={`${nameStyle} block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`}
+									className={`block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`}
 								/>
 							</div>
 						</div>
 
 						{/* Email */}
-						<div className="sm:col-span-3">
+						<div className="col-span-1 sm:col-span-2">
 							<label
 								htmlFor="email"
 								className="block text-sm font-medium leading-6 text-gray-900"
@@ -152,15 +144,15 @@ export default function AppointmentForm({ handleSubmit }) {
 									type="email"
 									value={email}
 									onInput={(e) =>
-										handleEmailInput(validator.blacklist(e.target.value, "<>/"))
+										setEmail(validator.blacklist(e.target.value, "<>/"))
 									}
-									className={`block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 ${emailStyle}`}
+									className={`block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`}
 								/>
 							</div>
 						</div>
 
 						{/* Phone */}
-						<div className="col-span-1">
+						<div className="col-span-1 sm:col-span-2">
 							<label
 								htmlFor="phone"
 								className="block text-sm font-medium leading-6 text-gray-900"
@@ -174,23 +166,34 @@ export default function AppointmentForm({ handleSubmit }) {
 									id="phone"
 									value={phone}
 									onInput={({ target }) =>
-										handlePhoneInput(validator.blacklist(target.value, "<>/"))
+										setPhone(validator.blacklist(target.value, "<>/"))
 									}
-									className={`block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 ${phoneStyle}`}
+									className={`block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`}
 									placeholder="(xxx) xxx-xxxx"
 								/>
 							</div>
 						</div>
 
-						<StaticDateTimePicker
-							value={moment(date, "YYYY-MM-DD:HH:mm")}
-							onChange={(e) => setDate(moment(e).format("YYYY-MM-DD:HH:mm"))}
-							disablePast
-							className="block w-full col-span-6"
-							orientation="landscape"
-						/>
+						{/* Date */}
+						<div className="block w-full col-span-1 sm:col-span-2">
+							<label
+								htmlFor="date"
+								className="block text-sm font-medium leading-6"
+							>
+								Date
+							</label>
+							<DateTimePicker
+								value={moment(date, "YYYY-MM-DD:HH:mm")}
+								onChange={(e) => setDate(moment(e).format("YYYY-MM-DD:HH:mm"))}
+								disablePast
+								className="block w-full col-span-3"
+								orientation="landscape"
+								name="date"
+							/>
+						</div>
 
-						<div className="col-span-6">
+						{/* Description */}
+						<div className="col-span-1 sm:col-span-6">
 							<label
 								htmlFor="description"
 								className="block text-sm font-medium leading-6 text-gray-900"
@@ -213,7 +216,7 @@ export default function AppointmentForm({ handleSubmit }) {
 						</div>
 
 						{/* Submit and Cancel Buttons */}
-						<div className="mt-6 flex items-center justify-end gap-x-6">
+						<div className="mt-6 flex items-center justify-start gap-x-6">
 							<button
 								type="button"
 								className="text-sm font-semibold leading-6 text-gray-900"
@@ -231,6 +234,22 @@ export default function AppointmentForm({ handleSubmit }) {
 					</div>
 				</div>
 			</form>
+			<Snackbar
+				open={alert}
+				autoHideDuration={6000}
+				onClose={() => setAlert(false)}
+			>
+				<Alert
+					onClose={() => setAlert(false)}
+					severity={danger ? "danger" : "success"}
+					variant="filled"
+					sx={{ width: "100%" }}
+				>
+					{danger
+						? "Appointment Request Failed"
+						: "Appointment Request Succeeded"}
+				</Alert>
+			</Snackbar>
 		</LocalizationProvider>
 	);
 }
