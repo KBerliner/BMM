@@ -20,7 +20,7 @@ export default function AppointmentForm({ handleSubmit }) {
 	const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
 
 	const [alert, setAlert] = useState(false);
-	const [danger, setDanger] = useState(false);
+	const [error, setError] = useState(false);
 
 	// Use state to store form data
 	const [name, setName] = useState("");
@@ -30,6 +30,12 @@ export default function AppointmentForm({ handleSubmit }) {
 	const [location, setLocation] = useState("Black Magic Motors");
 	const [description, setDescription] = useState("");
 
+	// Disabled time to keep schedules during working hours
+
+	const disableTime = (value, view) => {
+		const hour = value.hour();
+		return hour < 9 || hour > 16;
+	};
 	// Handle Validation on input
 	const validateForm = () => {
 		// Check if the name contains blacklisted characters
@@ -52,6 +58,12 @@ export default function AppointmentForm({ handleSubmit }) {
 			!validator.matches(phone, phoneRegex) ||
 			!phone
 		) {
+			return false;
+		}
+
+		// Check if the date is valid and is after right now
+
+		if (date <= moment().format("YYYY-MM-DD:HH:mm")) {
 			return false;
 		}
 
@@ -83,13 +95,13 @@ export default function AppointmentForm({ handleSubmit }) {
 			appointment.description = description;
 
 			setAlert(true);
-			setDanger(false);
+			setError(false);
 
 			handleSubmit(appointment);
 			navigate("/");
 		} else {
 			setAlert(true);
-			setDanger(true);
+			setError(true);
 		}
 	};
 
@@ -189,6 +201,8 @@ export default function AppointmentForm({ handleSubmit }) {
 								className="block w-full col-span-3"
 								orientation="landscape"
 								name="date"
+								minutesStep={30}
+								shouldDisableTime={disableTime}
 							/>
 						</div>
 
@@ -241,11 +255,11 @@ export default function AppointmentForm({ handleSubmit }) {
 			>
 				<Alert
 					onClose={() => setAlert(false)}
-					severity={danger ? "danger" : "success"}
+					severity={error ? "error" : "success"}
 					variant="filled"
 					sx={{ width: "100%" }}
 				>
-					{danger
+					{error
 						? "Appointment Request Failed"
 						: "Appointment Request Succeeded"}
 				</Alert>
