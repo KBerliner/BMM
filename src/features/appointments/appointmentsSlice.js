@@ -12,19 +12,9 @@ export const fetchAppointments = createAsyncThunk(
 	"appointments/fetchAppointments",
 	async () => {
 		const response = await fetch("http://localhost:3000/api/appointments");
-		const data = await response.json();
-		return data;
-	}
-);
-
-// Fetch Unavailable Appointment Times Thunk
-
-export const fetchUnavailable = createAsyncThunk(
-	"appointments/fetchUnavailable",
-	async (date) => {
-		const response = await fetch(
-			`http://localhost:3000/api/appointments/appointmenttimes/${date}`
-		);
+		if (!response.ok) {
+			throw new Error(response);
+		}
 		const data = await response.json();
 		return data;
 	}
@@ -35,7 +25,6 @@ export const fetchUnavailable = createAsyncThunk(
 export const addAppointment = createAsyncThunk(
 	"appointments/addAppointment",
 	async (appointment) => {
-		console.log(appointment);
 		const response = await fetch("http://localhost:3000/api/appointments", {
 			method: "POST",
 			headers: {
@@ -43,6 +32,9 @@ export const addAppointment = createAsyncThunk(
 			},
 			body: JSON.stringify(appointment),
 		});
+		if (!response.ok) {
+			throw new Error(response);
+		}
 		const data = await response.json();
 		return data;
 	}
@@ -72,7 +64,6 @@ const appointmentsSlice = createSlice({
 			.addCase(fetchAppointments.rejected, (state, action) => {
 				state.isLoading = false;
 				state.hasError = true;
-				state.appointments = action.payload;
 			})
 			.addCase(fetchAppointments.pending, (state, action) => {
 				state.isLoading = true;
@@ -89,25 +80,10 @@ const appointmentsSlice = createSlice({
 			.addCase(addAppointment.pending, (state, action) => {
 				state.isLoading = true;
 				state.hasError = false;
-			})
-			.addCase(fetchUnavailable.fulfilled, (state, action) => {
-				state.isLoading = false;
-				state.hasError = false;
-				state.times = action.payload;
-			})
-			.addCase(fetchUnavailable.rejected, (state, action) => {
-				state.isLoading = false;
-				state.hasError = true;
-			})
-			.addCase(fetchUnavailable.pending, (state, action) => {
-				state.isLoading = true;
-				state.hasError = false;
 			});
 	},
 });
 
 // Exporting
-
-export const { getAppointments } = appointmentsSlice.actions;
 
 export default appointmentsSlice.reducer;

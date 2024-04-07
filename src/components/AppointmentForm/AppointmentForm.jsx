@@ -2,6 +2,7 @@ import React from "react";
 import { useState } from "react";
 
 import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
 
 import moment from "moment";
 import validator from "validator";
@@ -13,14 +14,18 @@ import { DateTimePicker } from "@mui/x-date-pickers";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
-export default function AppointmentForm({ handleSubmit }) {
+import { checkSessionUtil } from "../../utils/checkSession";
+
+export default function AppointmentForm({ handleSubmit, goBack, error }) {
+	// Checking if the user is an admin
+	checkSessionUtil();
+
 	// Set necessary variables
 	const navigate = useNavigate();
 
 	const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
 
 	const [alert, setAlert] = useState(false);
-	const [error, setError] = useState(false);
 
 	// Use state to store form data
 	const [name, setName] = useState("");
@@ -83,25 +88,27 @@ export default function AppointmentForm({ handleSubmit }) {
 	const handleFormSubmit = (e) => {
 		e.preventDefault();
 
+		const dbDate = date.split(":")[0];
+		const dbTime = date.split(":")[1] + ":" + date.split(":")[2];
+
 		const appointment = {
-			location,
-			date,
+			appointment_location: location,
+			appointment_date: dbDate,
+			appointment_time: dbTime,
 		};
 
 		if (validateForm()) {
-			appointment.name = name;
-			appointment.email = email;
-			appointment.phone = phone;
-			appointment.description = description;
+			appointment.customer_name = name;
+			appointment.customer_email = email;
+			appointment.customer_phone = phone;
+			appointment.appointment_description = description;
 
 			setAlert(true);
-			setError(false);
 
 			handleSubmit(appointment);
 			navigate("/");
 		} else {
 			setAlert(true);
-			setError(true);
 		}
 	};
 
@@ -233,7 +240,8 @@ export default function AppointmentForm({ handleSubmit }) {
 						<div className="mt-6 flex items-center justify-start gap-x-6">
 							<button
 								type="button"
-								className="text-sm font-semibold leading-6 text-gray-900"
+								className="text-sm font-semibold leading-6 text-gray-900 bg-slate-100 px-3 py-2 rounded-md hover:bg-gray-300 active:bg-gray-400"
+								onClick={goBack}
 							>
 								Cancel
 							</button>
