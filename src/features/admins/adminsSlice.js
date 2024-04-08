@@ -22,6 +22,23 @@ export const checkSession = createAsyncThunk(
 	}
 );
 
+// Admin Login Thunk
+
+export const login = createAsyncThunk("appointments/login", async (data) => {
+	const response = await fetch("http://localhost:3000/api/admin/login", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(data),
+	});
+	if (!response.ok) {
+		throw new Error(response);
+	}
+	console.log("ADMIN LOGIN RESPONSE", response, response.status);
+	return response.status;
+});
+
 // Creating the Admin Slice
 
 const adminsSlice = createSlice({
@@ -42,6 +59,18 @@ const adminsSlice = createSlice({
 				state.hasError = true;
 			})
 			.addCase(checkSession.pending, (state, action) => {
+				state.isLoading = true;
+				state.hasError = false;
+			})
+			.addCase(login.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.hasError = false;
+			})
+			.addCase(login.rejected, (state, action) => {
+				state.isLoading = false;
+				state.hasError = true;
+			})
+			.addCase(login.pending, (state, action) => {
 				state.isLoading = true;
 				state.hasError = false;
 			});

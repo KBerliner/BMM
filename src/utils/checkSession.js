@@ -10,10 +10,10 @@ export const checkSessionUtil = () => {
 	dispatch(checkSession())
 		.then((response) => {
 			if (!response.ok) {
-				navigate("/");
+				navigate("/login");
 			}
 		})
 		.catch(() => {
-			navigate("/");
+			navigate("/login");
 		});
 };
