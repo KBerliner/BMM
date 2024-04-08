@@ -32,11 +32,15 @@ export const login = createAsyncThunk("appointments/login", async (data) => {
 		},
 		body: JSON.stringify(data),
 	});
+
+	const message = await response.json();
+
 	if (!response.ok) {
-		throw new Error(response);
+		console.log(message.message);
+		throw new Error(message.message);
 	}
-	console.log("ADMIN LOGIN RESPONSE", response, response.status);
-	return response.status;
+
+	return message;
 });
 
 // Creating the Admin Slice
@@ -47,6 +51,7 @@ const adminsSlice = createSlice({
 		isAdmin: false,
 		isLoading: false,
 		hasError: false,
+		response: "",
 	},
 	extraReducers: (builder) => {
 		builder
@@ -57,6 +62,7 @@ const adminsSlice = createSlice({
 			.addCase(checkSession.rejected, (state, action) => {
 				state.isLoading = false;
 				state.hasError = true;
+				state.isAdmin = false;
 			})
 			.addCase(checkSession.pending, (state, action) => {
 				state.isLoading = true;
@@ -65,10 +71,15 @@ const adminsSlice = createSlice({
 			.addCase(login.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.hasError = false;
+				state.isAdmin = true;
+				state.response = action.payload.message;
 			})
 			.addCase(login.rejected, (state, action) => {
 				state.isLoading = false;
 				state.hasError = true;
+				state.isAdmin = false;
+				console.log(action.error);
+				state.response = action.error.message;
 			})
 			.addCase(login.pending, (state, action) => {
 				state.isLoading = true;

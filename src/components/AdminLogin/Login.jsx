@@ -1,26 +1,34 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import validator from "validator";
 
-export default function Login({ handleSubmit, goBack }) {
+import { Snackbar } from "@mui/material";
+import Alert from "@mui/material/Alert";
+
+export default function Login({ handleSubmit, goBack, error, errorMessage }) {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [isValid, setIsValid] = useState(false);
+	const [alert, setAlert] = useState(false);
 
 	const handleClick = (e) => {
 		e.preventDefault();
 
 		if (
-			username !== validator.blacklist(username, "<>/") ||
-			(!username && password !== validator.blacklist(password, "<>/")) ||
-			!password
+			// Checking if the form is invalid
+			(username !== validator.blacklist(username, "<>/") || !username) &&
+			(password !== validator.blacklist(password, "<>/") || !password)
 		) {
+			setAlert(true);
+		} else {
+			handleSubmit({
+				admin_username: username,
+				admin_password: password,
+			});
+			setAlert(true);
 		}
-
-		handleSubmit({
-			admin_username: username,
-			admin_password: password,
-		});
 	};
+
+	useEffect(() => {}, [errorMessage]);
 
 	const handleInput = (e) => {
 		const { name, value } = e.target;
@@ -81,6 +89,24 @@ export default function Login({ handleSubmit, goBack }) {
 			>
 				<button className="w-full h-full">Login</button>
 			</div>
+			{errorMessage ? (
+				<Snackbar
+					open={alert}
+					autoHideDuration={6000}
+					onClose={() => setAlert(false)}
+				>
+					<Alert
+						onClose={() => setAlert(false)}
+						severity={error ? "error" : "success"}
+						variant="filled"
+						sx={{ width: "100%" }}
+					>
+						{errorMessage}
+					</Alert>
+				</Snackbar>
+			) : (
+				<></>
+			)}
 		</>
 	);
 }
